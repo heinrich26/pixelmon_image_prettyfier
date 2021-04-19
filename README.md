@@ -36,13 +36,13 @@ Other Options:\
 
 
 
-
+### Running from Source
 If you want to run this from source, you will need:
 - **Python3**
   - pycairo
   - PIL
 - **Java**
 
-### Running from Source
+
 to install the Python dependancyies, run: (If you have Python2 & 3 installed you might need to run pip3 oder python3 -m pip ...)\
 **pip install pycairo, PIL**
