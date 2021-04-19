@@ -31,6 +31,7 @@ Other Options:\
     -m / --mask  Additionally saves the calculated UV-Map\
     --mask-only  Only Saves the UV-Map, but no Image\
     -f / --force  Ignore Errors, doesn't ask for User Input\
+    -s / --smaller  Only keeps the Image, if it was smaller than the original one!\
 
 
 
