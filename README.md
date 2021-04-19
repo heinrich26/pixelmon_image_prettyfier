@@ -2,16 +2,31 @@
 A Script to reduce the size of Pixelmons Pokémon Textures and to create UV-Map Masks from your Mesh Files!
 
 ## Installing
-[Lastest .exe Download](https://github.com/heinrich26/pixelmon_image_prettyfier/releases)\
-Just Download the .exe Version and you're done, no installation needed!
+[**Lastest *.exe* Download**](https://github.com/heinrich26/pixelmon_image_prettyfier/releases)\
+Just Download the lastest *.exe* Version and you're done, no installation needed!
 
-Alternatively you can clone the Source Code with
+
+### Working with the Source
+If you want to run this from source, you will need:
+- **Python3**
+  - pycairo
+  - PIL
+- **Java**
+
+Clone the Source Code with
 ```bash
 $ git clone https://github.com/heinrich26/pixelmon_image_prettyfier.git
 ```
-and run main.py (with Python3)\
 
-`$ python main.py --options` ([see below](README.md#pixelmon_image_prettifier---help))\
+To install the Python dependancyies, run: 
+```bash
+$ pip install pycairo, PIL
+```
+(If both Python 2 & 3 are installed, you might need to use `pip3` or `python3 -m pip ...`)
+
+and run main.py (with Python3)
+
+`$ python main.py --options` ([see below](README.md#pixelmon_image_prettifier---help))
 
 
 ## Running
@@ -19,7 +34,7 @@ and run main.py (with Python3)\
 The Script may be given a Pokemon Texture located in the proper Assets Structure as in the `Pixelmon.jar`:\
 textures: `.../pixelmon/textures/pokemon/...`\
 It is important that the models are in the same `pixelmon` Directory, to function\
-models: `.../pixelmon/models/pokemon/\<named folders\>/...`\
+models: `.../pixelmon/models/pokemon/<named folders>/...`
 
 If no inputs are Given, it'll run a GUI version!
   
@@ -36,8 +51,8 @@ Pixelmon-Image-Prettifier by heinrich27   © heinrich27 - 2021
 
 
 Define Inputs with:\
-    `-i \<image\>` or `-ifile=\<image\>`   for a single Image, or\
-    `--dir=\<directory\>` for a whole Directory\
+    `-i <texture.png>` or `-ifile=<texture.png>`   for a single Image, or\
+    `--dir=<directory>` for a whole Directory\
 
 
 Other Options:\
@@ -50,15 +65,4 @@ Other Options:\
 
 
 
-### Running from Source
-If you want to run this from source, you will need:
-- **Python3**
-  - pycairo
-  - PIL
-- **Java**
 
-
-to install the Python dependancyies, run: (If you have both Python 2 & 3 installed you might need to run `pip3` or `python3 -m pip ...`)\
-```bash
-$ pip install pycairo, PIL
-```
