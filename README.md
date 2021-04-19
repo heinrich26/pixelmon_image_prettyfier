@@ -32,6 +32,7 @@ Other Options:\
     --mask-only  Only Saves the UV-Map, but no Image\
     -f / --force  Ignore Errors, doesn't ask for User Input\
     -s / --smaller  Only keeps the Image, if it was smaller than the original one!\
+    --self-select  You will be asked to select all the PQC\'s for the Texture by Hand!\
 
 
 
