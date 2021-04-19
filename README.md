@@ -9,7 +9,7 @@ It is important that the models are in the same *"pixelmon"* Directory, to funct
 models: .../pixelmon/models/pokemon/\<named folders\>/...
   
 
-The script has a weak searching algorithm, that locates the Model in the Folder Structure in most cases, however, if there are too many *Form-Extensions* like -normal_omega_whatever it will ask the user to select the Model folder! If for some reason, your texture was detected to another model, just name it, so theres no Pokémon-Folder that can be associated with it, and you will be able to select by Hand!
+The script has a weak searching algorithm, that locates the Model in the Folder Structure in most cases, however, if there are too many *Form-Extensions* like -normal_omega_whatever it will ask the user to select the Model folder! If for some reason, your texture was detected to another model, just rename it, so theres no Pokémon-Folder that can be associated with it, and you will be able to select by Hand!
 
 ### pixelmon_image_prettifier - help
 
