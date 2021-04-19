@@ -13,6 +13,7 @@ def mask_image(texture):
     global user_confirmation
     global save_mask
     global save_image
+    global keep_bigger
 
     cleanup = []
     old_size = os.path.getsize(texture)
@@ -24,7 +25,7 @@ def mask_image(texture):
     if not os.path.exists(meshdir):
         meshdir = path + "models/pokemon/" + name.rsplit("-", 1)[0].replace("-", "/").replace("female", "").replace("male", "")
         if not os.path.exists(meshdir) and user_confirmation:
-            answer = messagebox.askyesno(message="Couldn't find directory, do you want to select a directory manually?", title="Directory not found!")
+            answer = messagebox.askyesno(message="Couldn't find directory for " + name + ", do you want to select a directory manually?", title="Directory not found!")
             if answer:
                 meshdir = filedialog.askdirectory(mustexist=True, initialdir=path + "models/pokemon/" + name.replace("-", "/").rsplit("/", 1)[0], title="Select a Directory containing meshes for " + name)
             else:
@@ -109,11 +110,10 @@ def mask_image(texture):
         mask = Image.frombuffer("RGBA", im.size, mask.get_data().tobytes(), "raw", "RGBA", 0, 0).convert("1")
 
 
-        if save_mask:
-            im.putalpha(mask)
+        if save_image:
             im.convert("RGBA")
-            colors = im.getcolors(im.size[0] * im.size[1])
-            sorted_colors = sorted(colors, key=lambda t: t[0])
+            im.putalpha(mask)
+            sorted_colors = sorted(im.getcolors(im.size[0] * im.size[1]), key=lambda t: t[0])
             if sorted_colors[-1][1][3] == 0:
                 bg_color = sorted_colors[-2][1]
             else:
@@ -121,16 +121,18 @@ def mask_image(texture):
 
             im_out = Image.new("RGB", im.size, bg_color)
             im_out.paste(im, (0,0), mask)
+            if len(sorted_colors) <= 256:
+                im_out.convert("P")
     else:
-        im.convert("RGBA")
-        colors = im.getcolors(colorpicking_im.size[0] * colorpicking_im.size[1])
-        sorted_colors = sorted(colors, key=lambda t: t[0])
+        sorted_colors = sorted(im.getcolors(im.size[0] * im.size[1]), key=lambda t: t[0])
         if sorted_colors[-1][1][3] == 0:
             bg_color = sorted_colors[-2][1]
         else:
             bg_color = sorted_colors[-1][1]
         im_out = Image.new("RGB", im.size, bg_color)
         im_out.paste(im, (0, 0), im)
+        if len(sorted_colors) <= 256:
+            im_out.convert("P")
 
     # write the file
     new_texture = texture[:texture.rfind("/")] + "/bg_averaged" + texture[texture.rfind("/"):]
@@ -146,9 +148,13 @@ def mask_image(texture):
     if save_image:
         im_out.save(new_texture, optimize=True)
         new_size = os.path.getsize(new_texture)
-        start_size += old_size
-        end_size += new_size
-        print("Old Texture size: " + str(old_size) + " New Texture size:" + str(new_size) + "\nTexture size was reduced by " + str(old_size - new_size) + " bytes! hurray")
+        if new_size >= old_size and not keep_bigger:
+            cleanup.append(new_texture)
+            print("Output bigger than Input, skipping!")
+        else:
+            start_size += old_size
+            end_size += new_size
+            print("Old Texture size: " + str(old_size) + " New Texture size:" + str(new_size) + "\nTexture size was reduced by " + str(old_size - new_size) + " bytes! hurray")
 
     for file in cleanup:
         os.remove(file)
@@ -162,16 +168,17 @@ if __name__ == "__main__":
     save_mask = False
     save_image = True
     user_confirmation = True
+    keep_bigger = True
 
     if len(sys.argv) > 1:
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hi:mf", ["ifile=", "help", "dir=", "mask-only", "mask"])
+            opts, args = getopt.getopt(sys.argv[1:], "hi:mfs", ["ifile=", "help", "dir=", "mask-only", "mask", "smaller"])
         except getopt.GetoptError:
             print('Usage: main.py <options>')
             sys.exit(2)
         for opt, arg in opts:
             if opt in ('-h', "--help"):
-                print("pixelmon_image_prettifier - help\n\n  Pixelmon-Image-Prettifier by heinrich27 \u00A9 heinrich27 - 2021\n  Meant for internal use ONLY! Do not distibute!\n\nRun without Arguments to Select for a GUI!\n\nDefine Inputs with:\n    -i <image> / -ifile=<image>   for a single Image, or\n    --dir=<directory> for a whole Directory\n\nOther Options:\n    -h / --help  Shows this info\n    -m / --mask  Additionally saves the calculated UV-Map\n    --mask-only  Only Saves the UV-Map\n    -f / --force  Ignore Errors, doesn't ask for User Input")
+                print("pixelmon_image_prettifier - help\n\n  Pixelmon-Image-Prettifier by heinrich27 \u00A9 heinrich27 - 2021\n  Meant for internal use ONLY! Do not distibute!\n\nRun without Inputfile/-dir to select from the GUI!\n\nDefine Inputs with:\n    -i <image> / -ifile=<image>   for a single Image, or\n    --dir=<directory> for a whole Directory\n\nOther Options:\n    -h / --help  Shows this info\n    -m / --mask  Additionally saves the calculated UV-Map\n    --mask-only  Only Saves the UV-Map\n    -f / --force  Ignore Errors, doesn't ask for User Input\n    -s/--smaller  Does only keep the image, if its smaller than the old one!")
                 sys.exit()
             elif opt in ("-i", "--ifile"):
                 inputfile = arg.strip("\"").replace("\\", "/")
@@ -185,6 +192,9 @@ if __name__ == "__main__":
 
             if opt in ("-f", "--force"):
                 user_confirmation = False
+
+            if opt in ("-s", "--smaller"):
+                keep_bigger = False
 
 
     start_size = 0
