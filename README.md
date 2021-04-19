@@ -1,4 +1,4 @@
-# pixelmon_image_tools
+# pixelmon_image_prettyfier
 A Script to reduce the size of Pixelmons Pokémon Textures and to create UV-Map Masks from your Mesh Files!
 
 ## Running
