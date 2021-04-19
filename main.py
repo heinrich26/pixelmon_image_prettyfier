@@ -14,35 +14,59 @@ def mask_image(texture):
     global save_mask
     global save_image
     global keep_bigger
+    global user_select
 
     cleanup = []
+    mesh_files = []
+
     old_size = os.path.getsize(texture)
     path = texture[:texture.find("/textures/")+1]
     name = texture.rsplit("/", 1)[1].rsplit(".")[0].rsplit("-normal", 1)[0].rsplit("-zombie", 1)[0].replace("shiny", "")
 
     meshdir = path + "models/pokemon/" + name.replace("-", "/")
 
-    if not os.path.exists(meshdir):
+    if user_select:
+        askpath = path + "models/pokemon/" + name[:name.find("-")]
+        if not os.path.exists(askpath):
+            askpath = path + "models/pokemon/"
+        pqcs = [file.replace("\\", "/") for file in filedialog.askopenfilenames(initialdir=askpath, filetypes=[("PQC Files", ".pqc")], title="Select all PQC\'s for " + name)]
+        if len(pqcs) == 0:
+            raise Exception("User canceled")
+        else:
+            meshdir = pqcs[0][:pqcs[0].rfind("/")]
+            for file in pqcs:
+                mesh_files.append([meshdir + "/" + line[6:] for line in open(file, "r").read().split("\n") if line.startswith("$body")][0])
+    elif not os.path.exists(meshdir):
         meshdir = path + "models/pokemon/" + name.rsplit("-", 1)[0].replace("-", "/").replace("female", "").replace("male", "")
         if not os.path.exists(meshdir) and user_confirmation:
             answer = messagebox.askyesno(message="Couldn't find directory for " + name + ", do you want to select a directory manually?", title="Directory not found!")
             if answer:
-                meshdir = filedialog.askdirectory(mustexist=True, initialdir=path + "models/pokemon/" + name.replace("-", "/").rsplit("/", 1)[0], title="Select a Directory containing meshes for " + name)
+                askpath = path + "models/pokemon/" + name[:name.find("-")]
+                if not os.path.exists(askpath):
+                    askpath = path + "models/pokemon/"
+                print(askpath)
+                pqcs = [file.replace("\\", "/") for file in filedialog.askopenfilenames(initialdir=askpath, filetypes=[("PQC Files", ".pqc")], title="Select all PQC\'s for " + name)]
+                if len(pqcs) == 0:
+                    raise Exception("User canceled")
+                else:
+                    meshdir = pqcs[0][:pqcs[0].rfind("/")]
+                    for file in pqcs:
+                        mesh_files.append([meshdir + "/" + line[6:] for line in open(file, "r").read().split("\n") if line.startswith("$body")][0])
             else:
                 raise Exception("User canceled")
         elif not os.path.exists(meshdir):
-            print("No SMD-Model located, skipping!")
-            raise Exception("No SMD found")
+            print("No PQC-File located, skipping!")
+            raise Exception("No PQC found")
 
 
-    meshdir_contents = os.listdir(meshdir)
-    mesh_files = []
-    for file in meshdir_contents:
-        if file.endswith(".pqc"):
-            mesh_files.append([meshdir + "/" + line[6:] for line in open(meshdir + "/" + file, "r").read().split("\n") if line.startswith("$body")][0])
+    if mesh_files == []:
+        meshdir_contents = os.listdir(meshdir)
+        for file in meshdir_contents:
+            if file.endswith(".pqc"):
+                mesh_files.append([meshdir + "/" + line[6:] for line in open(meshdir + "/" + file, "r").read().split("\n") if line.startswith("$body")][0])
     for i in range(0, len(mesh_files)):
+        file = mesh_files[i]
         if file.endswith(".bmd"):
-            file = mesh_files[i]
             os.system("java -classpath " + program_path + " ModelConverter " + file)
             mesh_files[i] = file[:file.rfind("/") + 1] + "export-" + file[file.rfind("/") + 1:-3] + "smd"
             cleanup.append(mesh_files[i])
@@ -122,6 +146,7 @@ def mask_image(texture):
             im_out = Image.new("RGB", im.size, bg_color)
             im_out.paste(im, (0,0), mask)
             if len(sorted_colors) <= 256:
+                print(len(sorted_colors), "I think I can make you Palette Mode :)")
                 im_out.convert("P")
     else:
         sorted_colors = sorted(im.getcolors(im.size[0] * im.size[1]), key=lambda t: t[0])
@@ -154,7 +179,7 @@ def mask_image(texture):
         else:
             start_size += old_size
             end_size += new_size
-            print("Old Texture size: " + str(old_size) + " New Texture size:" + str(new_size) + "\nTexture size was reduced by " + str(old_size - new_size) + " bytes! hurray")
+            print("Old Texture size: " + str(old_size) + " New Texture size:" + str(new_size) + "\n" + name + "\'s Texture size was reduced by " + str(old_size - new_size) + " bytes! hurray")
 
     for file in cleanup:
         os.remove(file)
@@ -169,16 +194,17 @@ if __name__ == "__main__":
     save_image = True
     user_confirmation = True
     keep_bigger = True
+    user_select = False
 
     if len(sys.argv) > 1:
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hi:mfs", ["ifile=", "help", "dir=", "mask-only", "mask", "smaller"])
+            opts, args = getopt.getopt(sys.argv[1:], "hi:mfs", ["ifile=", "help", "dir=", "mask-only", "mask", "smaller", "self-select"])
         except getopt.GetoptError:
             print('Usage: main.py <options>')
             sys.exit(2)
         for opt, arg in opts:
             if opt in ('-h', "--help"):
-                print("pixelmon_image_prettifier - help\n\n  Pixelmon-Image-Prettifier by heinrich27 \u00A9 heinrich27 - 2021\n  Meant for internal use ONLY! Do not distibute!\n\nRun without Inputfile/-dir to select from the GUI!\n\nDefine Inputs with:\n    -i <image> / -ifile=<image>   for a single Image, or\n    --dir=<directory> for a whole Directory\n\nOther Options:\n    -h / --help  Shows this info\n    -m / --mask  Additionally saves the calculated UV-Map\n    --mask-only  Only Saves the UV-Map\n    -f / --force  Ignore Errors, doesn't ask for User Input\n    -s/--smaller  Does only keep the image, if its smaller than the old one!")
+                print("pixelmon_image_prettifier - help\n\n  Pixelmon-Image-Prettifier by heinrich27 \u00A9 heinrich27 - 2021\n  Meant for internal use ONLY! Do not distibute!\n\nRun without Inputfile/-dir to select from the GUI!\n\nDefine Inputs with:\n    -i <image> / -ifile=<image>   for a single Image, or\n    --dir=<directory> for a whole Directory\n\nOther Options:\n    -h / --help  Shows this info\n    -m / --mask  Additionally saves the calculated UV-Map\n    --mask-only  Only Saves the UV-Map\n    -f / --force  Ignore Errors, doesn't ask for User Input\n    -s/--smaller  Does only keep the image, if its smaller than the old one!\n    --self-select  You will be asked to select all the PQC\'s for the Texture by Hand!")
                 sys.exit()
             elif opt in ("-i", "--ifile"):
                 inputfile = arg.strip("\"").replace("\\", "/")
@@ -195,6 +221,9 @@ if __name__ == "__main__":
 
             if opt in ("-s", "--smaller"):
                 keep_bigger = False
+
+            if opt == "--self-select":
+                user_select = True
 
 
     start_size = 0
@@ -221,7 +250,7 @@ if __name__ == "__main__":
 
     # else - run GUI interface
     else:
-        textures = filedialog.askopenfilenames(title='Choose image(s)')
+        textures = filedialog.askopenfilenames(title='Choose image(s)', filetypes=[("PNG Images", ".png")])
         if textures == "":
             sys.exit()
         for texture in textures:
